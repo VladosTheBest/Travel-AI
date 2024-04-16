@@ -1,17 +1,13 @@
 package main
 
 import (
+	structures "backend/structures"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type User struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-var registeredUsers []User
+var registeredUsers []structures.User
 
 func main() {
 	http.HandleFunc("/register", registerHandler)
@@ -22,7 +18,7 @@ func main() {
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
+	var user structures.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -34,7 +30,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
+	var user structures.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
