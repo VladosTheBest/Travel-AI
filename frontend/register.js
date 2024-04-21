@@ -1,4 +1,4 @@
-let btn = document.getElementById('.btn');
+let btn = document.querySelector('.btn');
 function registerUser(email, password) {
     fetch('http://localhost:8081/register', {
         method: 'POST',
