@@ -21,5 +21,3 @@ function registerUser(email, password) {
         console.error('Ошибка при отправке запроса:', error);
     });
 }
-
-btn.addEventListener("click", registerUser(email, password))
