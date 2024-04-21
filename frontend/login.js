@@ -21,4 +21,4 @@ function loginUser(email, password) {
         console.error('Ошибка при отправке запроса:', error);
     });
 }
-btn.addEventListener("click", loginUser)
+btn.addEventListener("click", loginUser(email, password))

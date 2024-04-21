@@ -22,4 +22,4 @@ function registerUser(email, password) {
     });
 }
 
-btn.addEventListener("click", registerUser)
+btn.addEventListener("click", registerUser(email, password))
