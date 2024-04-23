@@ -41,9 +41,9 @@ form.addEventListener('submit', function(e){
     })
     .then(response => {
         if (response.ok) {
-            console.log('Login successful!');
+            console.log('Registration successful!');
         } else {
-            console.error('Sign-in error:', response.statusText);
+            console.error('Sign-up error:', response.statusText);
         }
     })
     // .then(function(data){
