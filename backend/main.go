@@ -1,67 +1,70 @@
 package main
 
 import (
-	structures "backend/structures"
-	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-var registeredUsers []structures.User
-
-func main() {
-	http.HandleFunc("/register", registerHandler)
-	http.HandleFunc("/login", loginHandler)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		setupCORS(&w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-	})
-
-	fmt.Println("Server is running on port 8081...")
-	http.ListenAndServe(":8081", nil)
+type User struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func registerHandler(w http.ResponseWriter, r *http.Request) {
-	setupCORS(&w, r)
-	var user structures.User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+var registeredUsers []User
+
+func main() {
+	router := gin.Default()
+
+	// Интеграция CORS для всех маршрутов
+	router.Use(corsMiddleware())
+
+	router.POST("/register", registerHandler)
+	router.POST("/login", loginHandler)
+
+	router.Run(":8081")
+}
+
+func registerHandler(c *gin.Context) {
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	registeredUsers = append(registeredUsers, user)
-	fmt.Fprintf(w, "User %s registered successfully!", user.Email)
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User %s registered successfully!", user.Email)})
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	setupCORS(&w, r)
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	var user structures.User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+func loginHandler(c *gin.Context) {
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	for _, registeredUser := range registeredUsers {
 		if registeredUser.Email == user.Email && registeredUser.Password == user.Password {
-			fmt.Fprintf(w, "OK")
+			c.String(http.StatusOK, "OK")
 			return
 		}
 	}
 
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	c.String(http.StatusUnauthorized, "Unauthorized")
 }
 
-func setupCORS(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-	if req.Method == "OPTIONS" {
-		(*w).WriteHeader(http.StatusOK)
-		return
+// Функция для установки заголовков CORS
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		c.Header("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusOK)
+			return
+		}
+
+		c.Next()
 	}
 }
